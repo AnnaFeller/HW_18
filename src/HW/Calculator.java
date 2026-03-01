@@ -1,22 +1,21 @@
 package HW;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BinaryOperator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Calculator {
-    public static Map<String, BinaryOperator<Integer>> mapOperations;
+    public static Map<String, BinaryOperator<Integer>> mapOperation;
 
     static {
-        mapOperations = new HashMap<>();
-        mapOperations.put("+", (a, b) -> a + b);
-        mapOperations.put("-", (a, b) -> a - b);
-        mapOperations.put("*", (a, b) -> a * b);
-        mapOperations.put("/", (a, b) -> a / b);
+        mapOperation = new HashMap<>();
+        mapOperation.put("+", (a, b) -> a + b);
+        mapOperation.put("-", (a, b) -> a - b);
+        mapOperation.put("*", (a, b) -> a * b);
+        mapOperation.put("/", (a, b) -> a / b);
     }
 
     public static Integer computeExpression(String str) {
@@ -25,36 +24,45 @@ public class Calculator {
         if (!str.matches("-?\\d+([+\\-*/]-?\\d+)*")) {
             throw new IllegalArgumentException("error");
         }
+        if (str.startsWith("-")) {
+            str = "0" + str;}
 
-        List<Integer> nums = new ArrayList<>();
-        List<String> ops = new ArrayList<>();
+        String[] parts = str.split("[+\\-*/]");
+        List<Integer> num = new ArrayList<>();
+        for (String p : parts) {
+            if (!p.isEmpty()) {
+                num.add(Integer.parseInt(p));
+            }
+        }
+        List<String> operators = new ArrayList<>();
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if ("+-*/".indexOf(c) >= 0 && i > 0) {
+                operators.add(String.valueOf(c));
+            }
+        }
 
-        Matcher m = Pattern.compile("-?\\d+").matcher(str);
-        while (m.find()) nums.add(Integer.parseInt(m.group()));
-
-        Matcher mOp = Pattern.compile("(?<=\\d)[+\\-*/]").matcher(str);
-        while (mOp.find()) ops.add(mOp.group());
-
-        for (int i = 0; i < ops.size(); i++) {
-            String op = ops.get(i);
+        for (int i = 0; i < operators.size(); i++) {
+            String op = operators.get(i);
             if (op.equals("*") || op.equals("/")) {
-                int res = mapOperations.get(op).apply(nums.get(i), nums.get(i + 1));
-                nums.set(i, res);
-                nums.remove(i + 1);
-                ops.remove(i);
+                int res = mapOperation.get(op).apply(num.get(i), num.get(i + 1));
+                num.set(i, res);
+                num.remove(i + 1);
+                operators.remove(i);
                 i--;
             }
         }
 
-        int finalRes = nums.get(0);
-        for (int i = 0; i < ops.size(); i++) {
-            finalRes = mapOperations.get(ops.get(i)).apply(finalRes, nums.get(i + 1));
+        // Теперь в списках остались только + и -
+        int result = num.get(0);
+        for (int i = 0; i < operators.size(); i++) {
+            result  = mapOperation.get(operators.get(i)).apply(result, num.get(i + 1));
         }
 
-        return finalRes;
+        return result;
     }
 
     public static void main(String[] args) {
-        System.out.println(computeExpression("34-2*5/4"));
+        System.out.println(computeExpression("-10-9+3"));
     }
 }
