@@ -53,7 +53,6 @@ public class Calculator {
             }
         }
 
-        // Теперь в списках остались только + и -
         int result = num.get(0);
         for (int i = 0; i < operators.size(); i++) {
             result  = mapOperation.get(operators.get(i)).apply(result, num.get(i + 1));
